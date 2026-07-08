@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  patente   String?
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions  Session[]
+  reports   Report[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  municipioId  String
+  zonaNombre   String
+  calle        String
+  patente      String
+  inicio       DateTime
+  fin          DateTime?
+  tarifaHora   Float
+  montoTotal   Float?
+  medioPago    String?
+  comprobante  String?
+  lugarIdx     Int?
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model Report {
+  id           String   @id @default(cuid())
+  userId       String
+  municipioId  String
+  zonaNombre   String
+  patente      String
+  comentario   String?
+  fotoUrl      String?
+  estado       String   @default("pendiente")
+  actaNumero   String?
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model Municipio {
+  id          String   @id
+  nombre      String
+  lat         Float
+  lng         Float
+  tarifaHora  Float
+  createdAt   DateTime @default(now())
+
+  zonas       Zona[]
+}
+
+model Zona {
+  id          String   @id @default(cuid())
+  municipioId String
+  nombre      String
+  ref         String
+  lat         Float
+  lng         Float
+  capacidad   Int
+
+  municipio   Municipio @relation(fields: [municipioId], references: [id])
+  plazas      Plaza[]
+}
+
+model Plaza {
+  id        String  @id @default(cuid())
+  zonaId    String
+  cuadra    Int
+  ocupado   Boolean @default(false)
+  pago      Boolean @default(false)
+
+  zona      Zona    @relation(fields: [zonaId], references: [id])
+}
