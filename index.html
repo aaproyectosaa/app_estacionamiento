@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hay Lugar — Mapa de estacionamiento · Santa Fe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="mapa"></div>
+
+<div class="cabecera">
+  <div class="fila-superior">
+    <div class="chip-marca">
+      <div class="senal-e" aria-hidden="true">E</div>
+      <strong>Hay Lugar</strong>
+    </div>
+    <div class="selector">
+      <select id="municipio" aria-label="Elegir municipio"></select>
+    </div>
+  </div>
+  <div class="fila-chips">
+    <div class="chip-total"><span class="num" id="chipNum" style="color:var(--verde)">—</span> lugares libres</div>
+    <button class="chip-btn" onclick="abrirZonaPrincipal()" id="chipLugares">🅿️ Lugares</button>
+  </div>
+</div>
+
+<div id="demo" style="display:none">
+  <canvas id="demoCanvas"></canvas>
+  <div class="demo-etiqueta">🎮 Barrio de demostración · datos en vivo · tocá una cuadra</div>
+</div>
+
+<div id="conductor" style="display:none"></div>
+
+<div id="bienvenida">
+  <div class="senal-e grande" aria-hidden="true">E</div>
+  <h1>Hay Lugar</h1>
+  <p class="lema">Estacionamiento medido, simple y justo</p>
+  <div class="pasos">
+    <div class="paso"><span>1</span> Mirá el mapa y encontrá lugar al instante</div>
+    <div class="paso"><span>2</span> Estacioná y pagá por minuto — los primeros 15 son gratis</div>
+    <div class="paso"><span>3</span> Reportá autos sin pagar y cuidá tu ciudad</div>
+  </div>
+  <button class="btn-primario" onclick="document.getElementById('bienvenida').style.display='none'">Empezar</button>
+</div>
+
+<div class="banner-buscar" id="bannerBuscar" style="display:none"></div>
+
+<div class="hoja-zona" id="hojaZona" style="display:none"></div>
+
+<button class="btn-voz" id="btnVoz" onclick="escucharVoz()" ondblclick="consultaEscrita()" aria-label="Preguntar por voz" title="Preguntar por voz (doble toque para escribir)">
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+    <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/>
+    <path d="M19 11a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.92V21a1 1 0 0 0 2 0v-3.08A7 7 0 0 0 19 11z"/>
+  </svg>
+</button>
+
+<button class="btn-ubicacion" id="chipUbi" onclick="pedirUbicacion()" aria-label="Mi ubicación" title="Mi ubicación">
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="7"/>
+    <circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/>
+    <line x1="12" y1="1.5" x2="12" y2="5"/>
+    <line x1="12" y1="19" x2="12" y2="22.5"/>
+    <line x1="1.5" y1="12" x2="5" y2="12"/>
+    <line x1="19" y1="12" x2="22.5" y2="12"/>
+  </svg>
+</button>
+
+<div class="barra-park">
+  <button class="btn-park" id="btnPark" onclick="abrirPanel()">Estacioné acá</button>
+</div>
+
+<div id="modal"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="js/servidor.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
