@@ -1,0 +1,226 @@
+/* Pantalla de ingreso / setup */
+
+.setup-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px;
+  background: linear-gradient(145deg, #083A78 0%, #0B4EA2 45%, #1C1F26 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.setup-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+.setup-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 24px;
+  padding: 36px 28px 28px;
+  box-shadow: 0 20px 50px rgba(12, 30, 60, 0.35);
+}
+
+.setup-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.setup-logo {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+  background: #0B4EA2;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(11, 78, 162, 0.35);
+}
+
+.setup-logo span {
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.setup-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #1C1F26;
+  margin: 0;
+}
+
+.setup-subtitle {
+  margin: 8px 0 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: #6B7686;
+}
+
+.setup-divider {
+  height: 1px;
+  background: #E5E9EF;
+  margin: 0 0 28px;
+  border: none;
+}
+
+.setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.setup-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 12px;
+  color: #B91C1C;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.setup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setup-field label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6B7686;
+}
+
+.setup-field-hint {
+  margin: -4px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #9AA6B7;
+}
+
+.setup-input-wrap {
+  position: relative;
+}
+
+.setup-input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9AA6B7;
+  pointer-events: none;
+  display: flex;
+}
+
+.setup-input {
+  width: 100%;
+  border: 2px solid #C4CFDC;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1C1F26;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.setup-input.with-icon {
+  padding-left: 44px;
+}
+
+.setup-input.patente {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.setup-input::placeholder {
+  color: #B8C3D1;
+  font-family: 'Barlow', sans-serif;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.setup-input:focus {
+  outline: none;
+  border-color: #0B4EA2;
+  box-shadow: 0 0 0 3px rgba(11, 78, 162, 0.15);
+}
+
+.setup-btn {
+  width: 100%;
+  margin-top: 4px;
+  border: none;
+  border-radius: 14px;
+  padding: 16px 20px;
+  background: #0E9F4D;
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(14, 159, 77, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.setup-btn:hover:not(:disabled) {
+  background: #0b8742;
+}
+
+.setup-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.setup-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.setup-btn .spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: setup-girar 0.7s linear infinite;
+}
+
+@keyframes setup-girar {
+  to { transform: rotate(360deg); }
+}

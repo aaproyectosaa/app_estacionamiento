@@ -1,24 +1,28 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  extensions = [postgis]
 }
 
 model User {
   id        String   @id @default(cuid())
   name      String
-  email     String   @unique
-  password  String
+  email     String?  @unique
+  password  String?
   patente   String?
   role      String   @default("user")
+  legajo    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   sessions  Session[]
   reports   Report[]
+  actas     Acta[]
 }
 
 model Session {
@@ -55,6 +59,25 @@ model Report {
   user         User     @relation(fields: [userId], references: [id])
 }
 
+model Acta {
+  id           String   @id @default(cuid())
+  inspectorId  String
+  municipioId  String
+  patente      String
+  motivo       String
+  calle        String
+  fotoUrl      String?
+  montoMulta   Float?
+  observaciones String?
+  lat          Float?
+  lng          Float?
+  estado       String   @default("emitida")
+  comprobante  String?
+  createdAt    DateTime @default(now())
+
+  inspector    User     @relation(fields: [inspectorId], references: [id])
+}
+
 model Municipio {
   id          String   @id
   nombre      String
@@ -64,6 +87,52 @@ model Municipio {
   createdAt   DateTime @default(now())
 
   zonas       Zona[]
+  calles      Calle[]
+}
+
+model Calle {
+  id          String   @id @default(cuid())
+  municipioId String
+  nombre      String
+  geometria   Unsupported("geometry(LineString, 4326)")
+  medido      Boolean  @default(false)
+  medidaPor   String?
+  medidaEn    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  municipio   Municipio @relation(fields: [municipioId], references: [id])
+  cuadras     Cuadra[]
+
+  @@index([municipioId])
+}
+
+model Cuadra {
+  id                    String   @id @default(cuid())
+  zonaId                String
+  calleId               String?
+  nombre                String
+  orden                 Int
+  geometria             Unsupported("geometry(LineString, 4326)")
+  largoMetros           Float?
+  capacidad             Int      @default(0)
+  reservaMotos          Int      @default(0)
+  reservaRemises        Int      @default(0)
+  reservaDiscapacitados Int      @default(0)
+  descuentoEsquinas     Int      @default(0)
+  lado                  String?
+  medido                Boolean  @default(false)
+  medidaPor             String?
+  medidaEn              DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  zona        Zona     @relation(fields: [zonaId], references: [id])
+  calle       Calle?   @relation(fields: [calleId], references: [id])
+  plazas      Plaza[]
+
+  @@index([zonaId])
+  @@index([calleId])
 }
 
 model Zona {
@@ -77,14 +146,28 @@ model Zona {
 
   municipio   Municipio @relation(fields: [municipioId], references: [id])
   plazas      Plaza[]
+  cuadras     Cuadra[]
+
+  @@unique([municipioId, nombre])
 }
 
 model Plaza {
   id        String  @id @default(cuid())
   zonaId    String
+  cuadraId  String?
   cuadra    Int
   ocupado   Boolean @default(false)
   pago      Boolean @default(false)
+  lat       Float?
+  lng       Float?
+  angulo    Float?
+  medido    Boolean @default(false)
+  medidaPor String?
+  medidaEn  DateTime?
 
   zona      Zona    @relation(fields: [zonaId], references: [id])
+  cuadraRel Cuadra? @relation(fields: [cuadraId], references: [id])
+
+  @@index([zonaId])
+  @@index([cuadraId])
 }

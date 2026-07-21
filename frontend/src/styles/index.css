@@ -27,5 +27,4 @@ html, body, #root {
 body {
   font-family: var(--font-family-sans);
   color: var(--color-asfalto);
-  overflow: hidden;
 }

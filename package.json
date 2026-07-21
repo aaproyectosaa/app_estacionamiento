@@ -4,14 +4,31 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\"",
-    "dev:frontend": "pnpm --filter hay-lugar-frontend dev",
-    "dev:backend": "pnpm --filter hay-lugar-backend dev",
+    "dev:frontend": "PORT=4041 pnpm --filter hay-lugar-frontend dev",
+    "dev:backend": "PORT=4040 pnpm --filter hay-lugar-backend dev",
     "build": "pnpm --filter hay-lugar-frontend build",
     "start": "pnpm --filter hay-lugar-backend start",
     "db:push": "pnpm --filter hay-lugar-backend db:push",
-    "db:studio": "pnpm --filter hay-lugar-backend db:studio"
+    "db:studio": "pnpm --filter hay-lugar-backend db:studio",
+    "db:up": "docker compose up -d db",
+    "db:setup": "pnpm db:up && sleep 3 && pnpm db:push && pnpm db:seed && pnpm db:admin && pnpm db:inspectors",
+    "db:seed": "pnpm --filter hay-lugar-backend db:seed",
+    "db:seed:docker": "docker compose exec backend node prisma/seed.js",
+    "db:reset": "pnpm db:seed",
+    "db:admin": "pnpm --filter hay-lugar-backend db:admin",
+    "db:inspectors": "pnpm --filter hay-lugar-backend db:inspectors",
+    "lint": "pnpm --filter hay-lugar-backend lint && pnpm --filter hay-lugar-frontend lint",
+    "lint:fix": "pnpm --filter hay-lugar-backend lint --fix && pnpm --filter hay-lugar-frontend lint --fix",
+    "format": "prettier --write \"**/*.{js,jsx,json,css,md}\"",
+    "test": "pnpm --filter hay-lugar-backend test"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "@eslint/js": "^10.0.1",
+    "concurrently": "^9.1.2",
+    "eslint": "^10.7.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.7.0",
+    "prettier": "^3.9.5"
   }
 }

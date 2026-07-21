@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: haylugar
+      POSTGRES_PASSWORD: haylugar
+      POSTGRES_DB: haylugar
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U haylugar -d haylugar"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://haylugar:haylugar@db:5432/haylugar?schema=public
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me-in-prod}
+      PORT: 3000
+      NODE_ENV: ${NODE_ENV:-development}
+    ports:
+      - "3004:3000"
+    volumes:
+      - ./backend/src:/app/backend/src:ro
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_TARGET: http://backend:3000
+    volumes:
+      - ./frontend/src:/app/frontend/src:ro
+
+volumes:
+  pgdata:

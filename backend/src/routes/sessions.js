@@ -1,35 +1,41 @@
 import { Router } from 'express'
 import { authenticate } from '../middleware/auth.js'
+import { validate, sessionStartSchema } from '../middleware/validate.js'
 
 const router = Router()
 
-// In-memory sessions (replace with DB in production)
-const activeSessions = new Map()
-
-router.post('/start', authenticate, async (req, res) => {
+router.post('/start', authenticate, validate(sessionStartSchema), async (req, res) => {
   try {
     const { municipioId, zonaNombre, patente, calle, lat, lng } = req.body
     const userId = req.userId
 
-    if (!municipioId || !zonaNombre || !patente) {
-      return res.status(400).json({ message: 'municipioId, zonaNombre y patente son requeridos' })
+    const prisma = req.app.locals.prisma
+
+    const existing = await prisma.session.findFirst({
+      where: { userId, fin: null },
+    })
+
+    if (existing) {
+      return res.status(400).json({ message: 'Ya tenés una sesión activa. Finalizala antes de iniciar otra.' })
     }
 
-    const sessionId = `HL-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
-    const session = {
-      id: sessionId,
-      userId,
-      municipioId,
-      zonaNombre,
-      patente,
-      calle,
-      lat,
-      lng,
-      inicio: new Date(),
-      tarifaHora: 750, // Default, should come from zona
-    }
+    const municipio = await prisma.municipio.findUnique({
+      where: { id: municipioId },
+    })
 
-    activeSessions.set(sessionId, session)
+    const tarifaHora = municipio?.tarifaHora || 750
+
+    const session = await prisma.session.create({
+      data: {
+        userId,
+        municipioId,
+        zonaNombre,
+        patente,
+        calle: calle || '',
+        inicio: new Date(),
+        tarifaHora,
+      },
+    })
 
     res.json({ ok: true, session })
   } catch (error) {
@@ -41,30 +47,38 @@ router.post('/start', authenticate, async (req, res) => {
 router.post('/:id/stop', authenticate, async (req, res) => {
   try {
     const { id } = req.params
-    const session = activeSessions.get(id)
+    const prisma = req.app.locals.prisma
+
+    const session = await prisma.session.findFirst({
+      where: { id, userId: req.userId, fin: null },
+    })
 
     if (!session) {
-      return res.status(404).json({ message: 'Sesión no encontrada' })
+      return res.status(404).json({ message: 'Sesión no encontrada o ya finalizada' })
     }
 
     const fin = new Date()
     const minutos = Math.max(1, Math.ceil((fin - session.inicio) / 60000))
     const MIN_GRATIS = 15
     const cobrables = Math.max(0, minutos - MIN_GRATIS)
-    const monto = Math.round(cobrables * session.tarifaHora / 60)
+    const monto = Math.round((cobrables * session.tarifaHora) / 60)
+    const comprobante = `HL-${Date.now()}`
 
-    session.fin = fin
-    session.montoTotal = monto
-    session.comprobante = `HL-${Date.now()}`
-
-    activeSessions.delete(id)
+    const updated = await prisma.session.update({
+      where: { id },
+      data: {
+        fin,
+        montoTotal: monto,
+        comprobante,
+      },
+    })
 
     res.json({
       ok: true,
-      comprobante: session.comprobante,
+      comprobante: updated.comprobante,
       minutos,
       monto,
-      tarifaHora: session.tarifaHora,
+      tarifaHora: updated.tarifaHora,
     })
   } catch (error) {
     console.error('Stop session error:', error)
@@ -72,11 +86,37 @@ router.post('/:id/stop', authenticate, async (req, res) => {
   }
 })
 
-router.get('/active', authenticate, (req, res) => {
-  const userSessions = Array.from(activeSessions.values())
-    .filter(s => s.userId === req.userId)
+router.get('/active', authenticate, async (req, res) => {
+  try {
+    const prisma = req.app.locals.prisma
 
-  res.json(userSessions)
+    const sessions = await prisma.session.findMany({
+      where: { userId: req.userId, fin: null },
+      orderBy: { inicio: 'desc' },
+    })
+
+    res.json(sessions)
+  } catch (error) {
+    console.error('Get active sessions error:', error)
+    res.status(500).json({ message: 'Error al obtener sesiones activas' })
+  }
+})
+
+router.get('/history', authenticate, async (req, res) => {
+  try {
+    const prisma = req.app.locals.prisma
+
+    const sessions = await prisma.session.findMany({
+      where: { userId: req.userId, fin: { not: null } },
+      orderBy: { fin: 'desc' },
+      take: 50,
+    })
+
+    res.json(sessions)
+  } catch (error) {
+    console.error('Get history error:', error)
+    res.status(500).json({ message: 'Error al obtener historial' })
+  }
 })
 
 export default router
