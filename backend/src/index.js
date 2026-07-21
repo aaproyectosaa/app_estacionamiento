@@ -3,6 +3,8 @@ import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import rateLimit from 'express-rate-limit'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { PrismaClient } from '@prisma/client'
 import authRoutes from './routes/auth.js'
 import municipioRoutes from './routes/municipios.js'
@@ -17,11 +19,20 @@ import inspectorRoutes from './routes/inspector.js'
 import { authenticate } from './middleware/auth.js'
 import { sseMiddleware, broadcastPlazaUpdate } from './middleware/sse.js'
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const staticDir = process.env.STATIC_DIR
+  || path.join(__dirname, '../../frontend/dist')
+const serveStatic = process.env.SERVE_STATIC === 'true'
+  || (process.env.NODE_ENV === 'production' && process.env.SERVE_STATIC !== 'false')
+
 const app = express()
 const prisma = new PrismaClient()
 const PORT = process.env.PORT || 3000
 
-app.use(helmet())
+app.use(helmet(serveStatic ? {
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+} : {}))
 app.use(morgan('short'))
 
 const limiter = rateLimit({
@@ -77,6 +88,16 @@ app.get('/api/me', authenticate, async (req, res) => {
   }
 })
 
+if (serveStatic) {
+  app.use(express.static(staticDir))
+  app.get(/^(?!\/api).*/, (req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next()
+    res.sendFile(path.join(staticDir, 'index.html'), err => {
+      if (err) next(err)
+    })
+  })
+}
+
 app.use((err, req, res, _next) => {
   console.error('Unhandled error:', err)
   const status = err.status || 500
@@ -88,6 +109,7 @@ app.use((err, req, res, _next) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`)
+  if (serveStatic) console.log(`Serving frontend from ${staticDir}`)
 })
 
 process.on('SIGTERM', async () => {

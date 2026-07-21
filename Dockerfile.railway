@@ -1,0 +1,46 @@
+# Deploy único: frontend build + backend API (Neon + Railway)
+FROM node:24-alpine AS build
+
+WORKDIR /app
+
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY frontend/package.json frontend/
+COPY backend/package.json backend/
+
+RUN corepack enable && corepack prepare pnpm@latest --activate \
+  && pnpm install --frozen-lockfile
+
+COPY frontend/ frontend/
+
+ARG VITE_GOOGLE_MAPS_API_KEY
+ENV VITE_GOOGLE_MAPS_API_KEY=$VITE_GOOGLE_MAPS_API_KEY
+
+RUN pnpm --filter hay-lugar-frontend build
+
+FROM node:24-alpine
+
+WORKDIR /app
+
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY frontend/package.json frontend/
+COPY backend/package.json backend/
+
+RUN corepack enable && corepack prepare pnpm@latest --activate \
+  && pnpm install --frozen-lockfile
+
+COPY backend/prisma backend/prisma
+RUN cd backend && pnpm prisma generate
+
+COPY backend/ backend/
+COPY --from=build /app/frontend/dist frontend/dist
+
+WORKDIR /app/backend
+
+RUN chmod +x docker-entrypoint.sh
+
+ENV NODE_ENV=production
+ENV SERVE_STATIC=true
+
+EXPOSE 3000
+
+ENTRYPOINT ["./docker-entrypoint.sh"]
